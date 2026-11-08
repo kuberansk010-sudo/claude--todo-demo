@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tasks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #e9edf3;
+    --surface: #ffffff;
+    --surface-2: #f3f5f9;
+    --ink: #172033;
+    --muted: #6b7587;
+    --line: #e1e6ee;
+    --accent: #2a5cff;
+    --accent-ink: #ffffff;
+    --accent-soft: #e6ecff;
+    --danger: #d6455d;
+    --shadow: 0 1px 2px rgba(23,32,51,.06), 0 12px 32px -12px rgba(23,32,51,.18);
+    --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+    --body: "Instrument Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e131d; --surface: #161d2b; --surface-2: #1c2536; --ink: #e8ecf5;
+      --muted: #8b95a9; --line: #263148; --accent: #6f93ff; --accent-ink: #0e131d;
+      --accent-soft: #212d4d; --danger: #ff7389;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 32px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e131d; --surface: #161d2b; --surface-2: #1c2536; --ink: #e8ecf5;
+    --muted: #8b95a9; --line: #263148; --accent: #6f93ff; --accent-ink: #0e131d;
+    --accent-soft: #212d4d; --danger: #ff7389;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 32px -12px rgba(0,0,0,.6);
+  }
+
+  * { box-sizing: border-box; margin: 0; }
+  html { background: var(--bg); }
+  body {
+    font-family: var(--body); color: var(--ink); background: var(--bg);
+    min-height: 100vh; padding: clamp(16px, 5vw, 56px) 16px;
+    display: flex; justify-content: center; align-items: flex-start;
+    -webkit-font-smoothing: antialiased;
+  }
+  button, input { font: inherit; color: inherit; }
+  button { cursor: pointer; background: none; border: 0; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+
+  .app { width: 100%; max-width: 620px; }
+
+  header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 22px; padding: 0 4px; }
+  .date { color: var(--muted); font-size: .95rem; margin-bottom: 6px; }
+  h1 { font-family: var(--display); font-weight: 700; font-size: clamp(2rem, 6vw, 2.75rem); letter-spacing: -.03em; line-height: 1.05; }
+  .theme {
+    width: 40px; height: 40px; border-radius: 12px; background: var(--surface);
+    border: 1px solid var(--line); display: grid; place-items: center; color: var(--muted);
+    transition: color .15s, border-color .15s;
+  }
+  .theme:hover { color: var(--ink); border-color: var(--muted); }
+
+  .card { background: var(--surface); border-radius: 20px; box-shadow: var(--shadow); overflow: hidden; }
+
+  .progress { padding: 20px 22px 18px; border-bottom: 1px solid var(--line); }
+  .progress-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+  .progress-count { font-family: var(--display); font-weight: 700; font-size: 1.5rem; letter-spacing: -.02em; }
+  .progress-count span { color: var(--muted); font-weight: 500; }
+  .progress-pct { color: var(--muted); font-size: .9rem; font-variant-numeric: tabular-nums; }
+  .bar { height: 8px; background: var(--surface-2); border-radius: 99px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 99px; transition: width .45s cubic-bezier(.3,.8,.3,1); }
+
+  .add { display: flex; gap: 10px; padding: 16px 16px 12px; flex-wrap: wrap; }
+  .add input[type="text"] {
+    flex: 1 1 200px; min-width: 0; padding: 13px 16px; border-radius: 12px;
+    background: var(--surface-2); border: 1px solid transparent; transition: border-color .15s, background .15s;
+  }
+  .add input[type="text"]::placeholder { color: var(--muted); }
+  .add input[type="text"]:focus { outline: none; border-color: var(--accent); background: var(--surface); }
+  .add input[type="date"] {
+    padding: 12px 12px; border-radius: 12px; background: var(--surface-2); border: 1px solid transparent;
+    color: var(--muted); color-scheme: light dark;
+  }
+  .add input[type="date"]:focus { outline: none; border-color: var(--accent); }
+  .add-btn {
+    padding: 0 20px; height: 46px; border-radius: 12px; background: var(--accent); color: var(--accent-ink);
+    font-weight: 600; transition: transform .1s, filter .15s;
+  }
+  .add-btn:hover { filter: brightness(1.08); }
+  .add-btn:active { transform: scale(.97); }
+
+  .filters { display: flex; gap: 4px; padding: 4px 16px 14px; }
+  .filters button {
+    padding: 7px 14px; border-radius: 99px; color: var(--muted); font-size: .9rem; font-weight: 500;
+    transition: background .15s, color .15s;
+  }
+  .filters button:hover { color: var(--ink); }
+  .filters button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
+
+  ul { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--line); }
+  li {
+    display: flex; align-items: center; gap: 14px; padding: 14px 20px; border-bottom: 1px solid var(--line);
+    transition: background .15s;
+  }
+  li:last-child { border-bottom: 0; }
+  li:hover { background: var(--surface-2); }
+  li.enter { animation: pop .28s cubic-bezier(.3,.8,.3,1); }
+  @keyframes pop { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+  .check {
+    flex: none; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--muted);
+    display: grid; place-items: center; transition: all .18s; color: transparent;
+  }
+  .check:hover { border-color: var(--accent); }
+  li.done .check { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+
+  .body { flex: 1; min-width: 0; }
+  .title { display: block; width: 100%; text-align: left; overflow-wrap: anywhere; line-height: 1.4; transition: color .2s; }
+  li.done .title { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--muted); }
+  .due { display: inline-block; margin-top: 3px; font-size: .82rem; color: var(--muted); }
+  .due.late { color: var(--danger); font-weight: 500; }
+  li.done .due.late { color: var(--muted); font-weight: 400; }
+  .edit { width: 100%; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--accent); background: var(--surface); }
+  .edit:focus { outline: none; }
+
+  .del { flex: none; width: 32px; height: 32px; border-radius: 8px; color: var(--muted); display: grid; place-items: center; opacity: 0; transition: opacity .15s, color .15s, background .15s; }
+  li:hover .del, .del:focus-visible { opacity: 1; }
+  .del:hover { color: var(--danger); background: var(--surface); }
+  @media (hover: none) { .del { opacity: 1; } }
+
+  .empty { padding: 44px 24px 48px; text-align: center; color: var(--muted); border-top: 1px solid var(--line); }
+  .empty strong { display: block; font-family: var(--display); font-size: 1.15rem; color: var(--ink); margin-bottom: 4px; }
+
+  footer { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: .88rem; }
+  .clear { color: var(--muted); padding: 4px 8px; border-radius: 6px; }
+  .clear:hover:not(:disabled) { color: var(--danger); }
+  .clear:disabled { opacity: .4; cursor: default; }
+  .hint { text-align: center; color: var(--muted); font-size: .82rem; margin-top: 16px; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<main class="app">
+  <header>
+    <div>
+      <p class="date" id="date"></p>
+      <h1>Today’s tasks</h1>
+    </div>
+    <button class="theme" id="theme" aria-label="Toggle dark mode">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
+  </header>
+
+  <section class="card" aria-label="Task list">
+    <div class="progress">
+      <div class="progress-row">
+        <div class="progress-count" id="count"></div>
+        <div class="progress-pct" id="pct"></div>
+      </div>
+      <div class="bar" role="progressbar" aria-label="Completed tasks" aria-valuemin="0" aria-valuemax="100" id="bar"><i id="fill"></i></div>
+    </div>
+
+    <form class="add" id="form" autocomplete="off">
+      <input type="text" id="input" placeholder="Add a task" aria-label="New task" maxlength="200" required>
+      <input type="date" id="due" aria-label="Due date (optional)">
+      <button class="add-btn" type="submit">Add task</button>
+    </form>
+
+    <div class="filters" role="group" aria-label="Filter tasks">
+      <button data-filter="all" aria-pressed="true">All</button>
+      <button data-filter="active" aria-pressed="false">Active</button>
+      <button data-filter="done" aria-pressed="false">Completed</button>
+    </div>
+
+    <ul id="list"></ul>
+    <div class="empty" id="empty" hidden></div>
+
+    <footer>
+      <span id="left"></span>
+      <button class="clear" id="clear">Clear completed</button>
+    </footer>
+  </section>
+  <p class="hint">Click a task to edit it. Your tasks are saved in this browser.</p>
+</main>
+
+<script>
+(() => {
+  const KEY = "tasks.v1", THEME = "tasks.theme";
+  const $ = (id) => document.getElementById(id);
+  const list = $("list"), empty = $("empty");
+  let tasks = [], filter = "all", editingId = null, newId = null;
+
+  const load = () => { try { tasks = JSON.parse(localStorage.getItem(KEY)) || []; } catch { tasks = []; } };
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(tasks)); } catch {} };
+
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const today = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
+  const fmtDue = (s) => {
+    const d = new Date(s + "T00:00:00"), diff = Math.round((d - today()) / 864e5);
+    if (diff === 0) return "Due today";
+    if (diff === 1) return "Due tomorrow";
+    if (diff === -1) return "Due yesterday";
+    const opts = { day: "numeric", month: "short" };
+    if (d.getFullYear() !== new Date().getFullYear()) opts.year = "numeric";
+    return (diff < 0 ? "Overdue · " : "Due ") + d.toLocaleDateString(undefined, opts);
+  };
+
+  const check = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+  const trash = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>';
+
+  const esc = (s) => s.replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+
+  function render() {
+    const total = tasks.length, done = tasks.filter(t => t.done).length, active = total - done;
+    const pct = total ? Math.round(done / total * 100) : 0;
+    $("count").innerHTML = `${done} <span>of ${total} done</span>`;
+    $("pct").textContent = total ? pct + "%" : "";
+    $("fill").style.width = pct + "%";
+    $("bar").setAttribute("aria-valuenow", pct);
+    $("left").textContent = active === 1 ? "1 task left" : active + " tasks left";
+    $("clear").disabled = done === 0;
+
+    document.querySelectorAll(".filters button").forEach(b =>
+      b.setAttribute("aria-pressed", b.dataset.filter === filter));
+
+    const shown = tasks.filter(t => filter === "all" || (filter === "done" ? t.done : !t.done));
+    const t0 = today();
+
+    list.innerHTML = shown.map(t => {
+      const late = t.due && !t.done && new Date(t.due + "T00:00:00") < t0;
+      const body = editingId === t.id
+        ? `<input class="edit" value="${esc(t.text)}" maxlength="200" aria-label="Edit task">`
+        : `<button class="title" data-act="edit" title="Click to edit">${esc(t.text)}</button>` +
+          (t.due ? `<span class="due${late ? " late" : ""}">${fmtDue(t.due)}</span>` : "");
+      return `<li data-id="${t.id}" class="${t.done ? "done" : ""}${t.id === newId ? " enter" : ""}">
+        <button class="check" data-act="toggle" role="checkbox" aria-checked="${t.done}" aria-label="Mark “${esc(t.text)}” as ${t.done ? "not done" : "done"}">${check}</button>
+        <div class="body">${body}</div>
+        <button class="del" data-act="del" aria-label="Delete “${esc(t.text)}”">${trash}</button>
+      </li>`;
+    }).join("");
+    newId = null;
+
+    list.hidden = !shown.length;
+    empty.hidden = !!shown.length;
+    if (!shown.length) {
+      empty.innerHTML = !total
+        ? "<strong>Nothing here yet</strong>Add your first task above."
+        : filter === "done"
+          ? "<strong>No completed tasks</strong>Finished tasks will show up here."
+          : "<strong>All caught up</strong>You have no active tasks.";
+    }
+
+    const ed = list.querySelector(".edit");
+    if (ed) { ed.focus(); ed.setSelectionRange(ed.value.length, ed.value.length); }
+  }
+
+  $("form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const text = $("input").value.trim();
+    if (!text) return;
+    const t = { id: uid(), text, done: false, due: $("due").value || "" };
+    tasks.unshift(t); newId = t.id;
+    if (filter === "done") filter = "all";
+    $("input").value = ""; $("due").value = "";
+    save(); render(); $("input").focus();
+  });
+
+  list.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-act]");
+    if (!btn) return;
+    const id = btn.closest("li").dataset.id, act = btn.dataset.act;
+    if (act === "toggle") { const t = tasks.find(t => t.id === id); t.done = !t.done; }
+    else if (act === "del") { tasks = tasks.filter(t => t.id !== id); }
+    else if (act === "edit") { editingId = id; render(); return; }
+    save(); render();
+  });
+
+  function finishEdit(input, commit) {
+    const id = input.closest("li").dataset.id, val = input.value.trim();
+    if (commit && val) tasks.find(t => t.id === id).text = val;
+    editingId = null; save(); render();
+  }
+  list.addEventListener("keydown", (e) => {
+    if (!e.target.classList.contains("edit")) return;
+    if (e.key === "Enter") finishEdit(e.target, true);
+    if (e.key === "Escape") finishEdit(e.target, false);
+  });
+  list.addEventListener("focusout", (e) => {
+    if (e.target.classList.contains("edit") && editingId) finishEdit(e.target, true);
+  });
+
+  document.querySelector(".filters").addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    filter = b.dataset.filter; render();
+  });
+
+  $("clear").addEventListener("click", () => { tasks = tasks.filter(t => !t.done); save(); render(); });
+
+  $("theme").addEventListener("click", () => {
+    const root = document.documentElement;
+    const isDark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    const next = isDark ? "light" : "dark";
+    root.dataset.theme = next;
+    try { localStorage.setItem(THEME, next); } catch {}
+  });
+  try { const t = localStorage.getItem(THEME); if (t) document.documentElement.dataset.theme = t; } catch {}
+
+  $("date").textContent = new Date().toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" });
+
+  load(); render();
+})();
+</script>
+</body>
+</html>
